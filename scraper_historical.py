@@ -60,7 +60,10 @@ def scrape_year(session, year):
                 "link": link,
                 "image": img_src,
                 "authors": [],
-                "lyrics": []
+                "lyrics": [],
+                "youtube": [],
+                "spotify": [],
+                "posición":""
             })
     
     print(f"Found {len(groupings)} 'Adultos' groupings for {year}.")
@@ -148,6 +151,12 @@ def scrape_lyrics(session, grouping):
         # Content
         lyric_soup = get_soup(session, lyric_url)
         if lyric_soup:
+            # Last Modification
+            last_mod_p = lyric_soup.find('p', string=lambda text: text and "Ultima modificación" in text)
+            last_modification = ""
+            if last_mod_p:
+                last_modification = last_mod_p.get_text(strip=True).replace("Ultima modificación:", "").strip()
+
             letra_p = lyric_soup.find('p', id='letra')
             if letra_p:
                 content = letra_p.get_text(separator="\n", strip=True)
@@ -156,7 +165,8 @@ def scrape_lyrics(session, grouping):
                     "type": lyric_type,
                     "views": views,
                     "url": lyric_url,
-                    "content": content
+                    "content": content,
+                    "last_modification": last_modification
                 })
     
     grouping['lyrics'] = lyrics_list
@@ -168,11 +178,14 @@ def main():
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     })
 
-    start_year = 2025
-    end_year = 2017
+    start_year = 1982
+    end_year = 1885
+
+    OUTPUT_DIR = r"C:\Users\Usuario\Desktop\Scripts\CarnavalDatos\carnavalJSON"
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     for year in range(start_year, end_year - 1, -1):
-        output_file = f'carnaval_{year}_adultos_full.json'
+        output_file = os.path.join(OUTPUT_DIR, f'carnaval_{year}_adultos_full.json')
         
         # Skip if already exists (optional, but good for resuming)
         # if os.path.exists(output_file):
