@@ -1,1 +1,6 @@
 carnavalJSON/
+.env
+
+#Usos de anigravity
+check_structure.py
+debug_env.py

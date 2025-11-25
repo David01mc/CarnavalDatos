@@ -8,21 +8,31 @@ This project contains scripts to scrape data from [letrasdecarnaval.com](https:/
     - Grouping details (Name, Category, Author, Year, Image).
     - Author details (Name, Role, Image).
     - Lyrics (Title, Type, Views, Content).
+- **`upload_to_mongo.py`**: Script to upload the JSON files to a MongoDB Atlas database.
 - **`carnavalJSON/`**: Directory containing the output JSON files, named `carnaval_{year}_adultos_full.json`.
-- **`scraper_details.py`** & **`scraper_lyrics.py`**: Intermediate scripts used during development (superseded by `scraper_historical.py`).
+- **`docs/`**: Documentation files, including `explicacion_mongodb.md`.
 
 ## How to Run
 
 1.  Ensure you have Python installed.
 2.  Install dependencies:
     ```bash
-    pip install requests beautifulsoup4
+    pip install requests beautifulsoup4 "pymongo[srv]==3.12" python-dotenv
     ```
-3.  Run the historical scraper:
+3.  **Scraping**: Run the historical scraper:
     ```bash
     python scraper_historical.py
     ```
-    This will generate/overwrite the JSON files in the current directory (you may want to move them to `carnavalJSON` manually or update the script).
+4.  **MongoDB Upload**:
+    - Create a `.env` file in the root directory with your MongoDB credentials:
+      ```env
+      USERNAME_MONGODB=your_username
+      PASSWORD_MONGODB=your_password
+      ```
+    - Run the upload script:
+      ```bash
+      python upload_to_mongo.py
+      ```
 
 ## Data Format
 
