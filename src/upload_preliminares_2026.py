@@ -1,11 +1,81 @@
 """
 Script para subir los datos de preliminares 2026 a MongoDB
+Incluye también placeholders para cuartos, semifinales y final
 """
 
 import os
 import json
 from pymongo import MongoClient
 from dotenv import load_dotenv
+
+
+def generar_fases_futuras():
+    """
+    Genera documentos placeholder para cuartos, semifinales y final
+
+    Returns:
+        Lista de documentos con las fases futuras
+    """
+    documentos = []
+
+    # Cuartos de final: Del 30 de enero al 6 de febrero de 2026
+    cuartos_fechas = [
+        "30/01/2026", "31/01/2026",
+        "01/02/2026", "02/02/2026", "03/02/2026", "04/02/2026", "05/02/2026", "06/02/2026"
+    ]
+
+    for i, fecha in enumerate(cuartos_fechas, 1):
+        documentos.append({
+            'año': 2026,
+            'fase': 'Cuartos de Final',
+            'funcion': f'Cuartos de Final - Función {i}',
+            'fecha': fecha,
+            'tipo': None,
+            'nombre': None,
+            'cabeza_serie': None,
+            'letra': None,
+            'musica': None,
+            'direccion': None,
+            'localidad': None,
+            'año_anterior': None
+        })
+
+    # Semifinales: Del 8 al 11 de febrero de 2026
+    semifinal_fechas = ["08/02/2026", "09/02/2026", "10/02/2026", "11/02/2026"]
+
+    for i, fecha in enumerate(semifinal_fechas, 1):
+        documentos.append({
+            'año': 2026,
+            'fase': 'Semifinales',
+            'funcion': f'Semifinal - Función {i}',
+            'fecha': fecha,
+            'tipo': None,
+            'nombre': None,
+            'cabeza_serie': None,
+            'letra': None,
+            'musica': None,
+            'direccion': None,
+            'localidad': None,
+            'año_anterior': None
+        })
+
+    # Final: El 13 de febrero de 2026
+    documentos.append({
+        'año': 2026,
+        'fase': 'Final',
+        'funcion': 'Final',
+        'fecha': '13/02/2026',
+        'tipo': None,
+        'nombre': None,
+        'cabeza_serie': None,
+        'letra': None,
+        'musica': None,
+        'direccion': None,
+        'localidad': None,
+        'año_anterior': None
+    })
+
+    return documentos
 
 
 def upload_preliminares_2026():
@@ -70,6 +140,7 @@ def upload_preliminares_2026():
         # Cada agrupación será un documento separado
         documentos = []
 
+        # 1. Añadir agrupaciones de preliminares
         for funcion in data.get('funciones', []):
             for agrupacion in funcion.get('agrupaciones', []):
                 # Crear documento con toda la información
@@ -81,6 +152,14 @@ def upload_preliminares_2026():
                 }
                 documentos.append(documento)
 
+        # 2. Añadir placeholders para cuartos, semifinales y final
+        print("\n✓ Añadiendo placeholders para fases futuras...")
+        fases_futuras = generar_fases_futuras()
+        documentos.extend(fases_futuras)
+        print(f"  - Cuartos de Final: 8 funciones")
+        print(f"  - Semifinales: 4 funciones")
+        print(f"  - Final: 1 función")
+
         # Insertar documentos
         if documentos:
             result = collection.insert_many(documentos)
@@ -90,15 +169,27 @@ def upload_preliminares_2026():
             print("\n=== Estadísticas ===")
             print(f"Total de documentos insertados: {len(documentos)}")
 
-            # Contar por tipo
+            # Contar por fase
+            fases = {}
+            for doc in documentos:
+                fase = doc.get('fase', 'Sin fase')
+                fases[fase] = fases.get(fase, 0) + 1
+
+            print("\nDistribución por fase:")
+            for fase, count in sorted(fases.items()):
+                print(f"  - {fase}: {count}")
+
+            # Contar por tipo (solo para preliminares)
             tipos = {}
             for doc in documentos:
-                tipo = doc.get('tipo', 'Sin tipo')
-                tipos[tipo] = tipos.get(tipo, 0) + 1
+                if doc.get('fase') == 'Preliminares' and doc.get('tipo'):
+                    tipo = doc.get('tipo')
+                    tipos[tipo] = tipos.get(tipo, 0) + 1
 
-            print("\nDistribución por tipo:")
-            for tipo, count in sorted(tipos.items()):
-                print(f"  - {tipo}: {count}")
+            if tipos:
+                print("\nDistribución por tipo (Preliminares):")
+                for tipo, count in sorted(tipos.items()):
+                    print(f"  - {tipo}: {count}")
 
             # Mostrar ejemplo de un documento insertado
             print("\n=== Ejemplo de documento insertado ===")
@@ -127,6 +218,10 @@ def create_indexes(collection):
     Crea índices en la colección para optimizar las consultas
     """
     try:
+        # Índice por fase (filtrar por Preliminares, Cuartos, Semifinales, Final)
+        collection.create_index("fase")
+        print("✓ Índice creado: fase")
+
         # Índice por nombre de agrupación (búsquedas por nombre)
         collection.create_index("nombre")
         print("✓ Índice creado: nombre")
