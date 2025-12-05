@@ -1,5 +1,6 @@
-carnavalJSON/
+data/
 .env
+utils/
 
 #Usos de anigravity
 check_structure.py

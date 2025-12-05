@@ -181,7 +181,7 @@ def main():
     start_year = 1982
     end_year = 1885
 
-    OUTPUT_DIR = r"C:\Users\Usuario\Desktop\Scripts\CarnavalDatos\carnavalJSON"
+    OUTPUT_DIR = r"C:\Users\Usuario\Desktop\Scripts\Carnaval\CarnavalDatos\data\json"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     for year in range(start_year, end_year - 1, -1):

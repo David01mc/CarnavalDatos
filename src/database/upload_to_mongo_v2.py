@@ -4,6 +4,23 @@ import glob
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
+def add_default_fields(document):
+    """
+    Añade los nuevos campos con valores por defecto si no existen.
+    """
+    defaults = {
+        'callejera': 'No',
+        'descripcion': '',
+        'caracteristicas': [],
+        'componentes': []
+    }
+    
+    for field, default_value in defaults.items():
+        if field not in document:
+            document[field] = default_value
+    
+    return document
+
 def main():
     # Load environment variables from .env file
     load_dotenv()
@@ -37,7 +54,7 @@ def main():
     collection = db["agrupaciones"]
 
     # Find all JSON files
-    json_files = glob.glob("carnavalJSON/*.json")
+    json_files = glob.glob("data/json/*.json")
     print(f"Found {len(json_files)} JSON files.")
 
     for json_file in json_files:
@@ -47,15 +64,17 @@ def main():
             
             if isinstance(data, list):
                 if data:
-                    # Add filename or year/category metadata if needed? 
-                    # The data already seems to have 'year' and 'category'.
-                    # We can insert_many
-                    result = collection.insert_many(data)
+                    # Add default fields to each document
+                    data_with_defaults = [add_default_fields(doc) for doc in data]
+                    
+                    result = collection.insert_many(data_with_defaults)
                     print(f"Inserted {len(result.inserted_ids)} documents from {json_file}")
                 else:
                     print(f"Skipping empty list in {json_file}")
             elif isinstance(data, dict):
-                collection.insert_one(data)
+                # Add default fields to single document
+                data_with_defaults = add_default_fields(data)
+                collection.insert_one(data_with_defaults)
                 print(f"Inserted 1 document from {json_file}")
             else:
                 print(f"Unknown data format in {json_file}")
